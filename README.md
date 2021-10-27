@@ -1,2 +1,2 @@
 # scale-box
-For scaling boxes
+JS object for scaling boxes

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ScaleBox Example</title>
+  </head>
+  <body>
+    <h1>ScaleBox Example</h1>
+    <p>
+      The following graph uses the <a href="https://github.com/yberman/scale-box">ScaleBox</a> object to manage the following scales:
+    </p>
+    <ul>
+      <li>The coordinates as pixels.</li>
+      <li>The coordinates as pixels with a padding of 15px.</li>
+      <li>Sampling 1000 times over the range.</li>
+      <li>The domain (-12 to 12) and range (-4 to 4) of the function.</li>
+    </ul>
+    <canvas id="plot" height="400" width="800"></canvas><br>
+
+    <script src="./scale-box.js"></script>
+    <script>
+      const f = x=>x*x+ x/10;
+      const g = x=>Math.sin(x) - 1/x;
+      const scaleBox = ScaleBox();
+      const plot = document.getElementById("plot");
+      const plotCtx = plot.getContext("2d");
+      const nSamples = 800;
+
+      scaleBox.addLayer("canvas", 0, plot.width, 0, plot.height);
+      scaleBox.addLayer("canvas-no-border", 15, plot.width-15, plot.height-15, 15);
+      scaleBox.addLayer("coordinates", -12, 12, -4, 4);
+      // y-coordinates don't matter for sampling
+      scaleBox.addLayer("samples", 0, nSamples, 0, 1);
+      console.log(scaleBox);
+
+      let toX = i=>scaleBox.scale("samples", "coordinates")({x:i}).x;
+      let toPixel = scaleBox.scale("coordinates", "canvas-no-border");
+
+      for(let i = 0; i < nSamples; i++) {
+        let x = toX(i)
+        let pt = {x: x, y: g(x)}
+        let px = toPixel(pt);
+        plotCtx.fillStyle = "black";
+        if (px.y > 0 && px.y < plot.height) {
+          plotCtx.beginPath()
+          plotCtx.arc(px.x, px.y, 3, 0, 2*Math.PI);
+          plotCtx.fill();
+        }
+        let pt2 = {x: x, y: f(x)}
+        let px2 = toPixel(pt2);
+        plotCtx.fillStyle = "darkred";
+        if (px2.y > 0 && px2.y < plot.height) {
+          plotCtx.beginPath()
+          plotCtx.arc(px2.x, px2.y, 3, 0, 2*Math.PI);
+          plotCtx.fill();
+        }
+
+      }
+
+      let scale = scaleBox.scale("absolute", "canvas");
+      let endBox = scale({x:1, y:1});
+      plotCtx.lineWidth = 5;
+      console.log(endBox);
+      plotCtx.strokeRect(0, 0, endBox.x, endBox.y);
+
+    </script>
+  </body>
+</html>
